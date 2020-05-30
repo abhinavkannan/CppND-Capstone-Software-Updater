@@ -5,19 +5,26 @@
 #include <vector>
 #include "Software.h"
 
-constexpr auto AVAILABLE_SOFTWARES_FILE = "AvailableSoftwaresList.txt";
-constexpr auto TEMP_AVAILABLE_SOFTWARES_FILE = "AvailableSoftwaresListTemp.txt";
-constexpr auto INSTALLED_SOFTWARES_FILE = "InstalledSoftwaresList.txt";
-constexpr auto TEMP_INSTALLED_SOFTWARES_FILE = "InstalledSoftwaresListTemp.txt";
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+constexpr auto AVAILABLE_SOFTWARES_FILE = "..\\files\\available_sw_list.txt";
+constexpr auto TEMP_AVAILABLE_SOFTWARES_FILE = "..\\files\\available_sw_list_temp.txt";
+constexpr auto INSTALLED_SOFTWARES_FILE = "..\\files\\installed_sw_list.txt";
+constexpr auto TEMP_INSTALLED_SOFTWARES_FILE = "..\\files\\installed_sw_list_temp.txt";
+#else
+constexpr auto AVAILABLE_SOFTWARES_FILE = "../files/available_sw_list.txt";
+constexpr auto TEMP_AVAILABLE_SOFTWARES_FILE = "../files/available_sw_list_temp.txt";
+constexpr auto INSTALLED_SOFTWARES_FILE = "../files/installed_sw_list.txt";
+constexpr auto TEMP_INSTALLED_SOFTWARES_FILE = "../files/installed_sw_list_temp.txt";
+#endif
 
 class SoftwareInfoManager
 {
 public:
-  SoftwareInfoManager(std::string path);
+  SoftwareInfoManager();
   ~SoftwareInfoManager();
 
-  std::vector<Software> ReadSwInfo();
-  void WriteSwInfo(std::vector<Software> _swList);
+  std::vector<Software> ReadSwInfo(std::string path);
+  void WriteSwInfo(std::string path, std::vector<Software> swList);
 
 private:
   std::fstream _stream;

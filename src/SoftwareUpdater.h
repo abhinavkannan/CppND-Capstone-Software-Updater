@@ -9,12 +9,14 @@
 
 class SoftwareUpdater
 {
+public:
   SoftwareUpdater();
   ~SoftwareUpdater();
 
+  void InitSwList();
   void RefreshSwList();
-  void InstallSofware(Software sw);
-  void RemoveSoftware(Software sw);
+  void InstallSofware(std::size_t index);
+  void RemoveSoftware(std::size_t index);
 
   std::vector<Software> GetAvailSwList();
   std::vector<Software> GetInstalledSwList();
@@ -27,7 +29,7 @@ private:
   std::vector<Software> _installedSoftwareList;
 
   std::condition_variable _cond;
-  std::mutex _mutex;
+  std::mutex              _mutex;
 };
 
 #endif /* SOFTWARE_UPDATER_H_ */
