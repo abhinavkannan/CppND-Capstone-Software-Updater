@@ -7,10 +7,26 @@ const int windowHeight = 600;
 
 IMPLEMENT_APP(SoftwareUpdaterApp);
 
+wxBEGIN_EVENT_TABLE(SoftwareUpdaterMainFrame, wxFrame)
+  EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_EXIT, SoftwareUpdaterMainFrame::OnExit)
+  EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_REFRESH, SoftwareUpdaterMainFrame::OnRefresh)
+  EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_ABOUT, SoftwareUpdaterMainFrame::OnAbout)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(LoginPanel, wxPanel)
+  EVT_TEXT_ENTER(LOGIN_PANEL_USERNAME, LoginPanel::OnEnter)
+  EVT_BUTTON(LOGIN_PANEL_OK_BUTTON, LoginPanel::OnButtonClicked)
+  EVT_BUTTON(LOGIN_PANEL_QUIT_BUTTON, LoginPanel::OnExit)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(SoftwareViewPanel, wxPanel)
+  EVT_LIST_ITEM_SELECTED(SOFTWARE_VIEW_PANEL_AVAIL_LIST, SoftwareViewPanel::OnListCtrlItemClick)
+  EVT_LIST_ITEM_SELECTED(SOFTWARE_VIEW_PANEL_INSTALLED_LIST, SoftwareViewPanel::OnListCtrlItemClick)
+  EVT_NOTEBOOK_PAGE_CHANGED(SOFTWARE_VIEW_PANEL_NOTEBOOK, SoftwareViewPanel::OnSoftwareViewPageChanged)
+wxEND_EVENT_TABLE()
+
 void LoginPanel::OnEnter(wxCommandEvent &event)
 {
-  std::cout << __func__ << "(): " << std::endl;
-
   // Retrieve the text from the text box
   _usernameString = _usernameTextCtrl->GetLineText(0);
 
@@ -23,8 +39,6 @@ void LoginPanel::OnEnter(wxCommandEvent &event)
 
 void LoginPanel::OnButtonClicked(wxCommandEvent &event)
 {
-  std::cout << __func__ << "(): " << std::endl;
-
   // Retrieve the text from the text box
   _usernameString = _usernameTextCtrl->GetLineText(0);
 
@@ -52,39 +66,49 @@ LoginPanel::LoginPanel(wxWindow *parent)
 {
   // Create username panel components
   _usernameLabelText = new wxStaticText(this, wxID_ANY, "Enter Username",
-	                                    wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxBORDER_NONE);
+										wxDefaultPosition, wxDefaultSize,
+										wxALIGN_CENTRE | wxBORDER_NONE);
   
   // Edit box to allow user to enter their username
-  _usernameTextCtrl = new wxTextCtrl(this, LOGIN_PANEL_USERNAME, wxEmptyString,
-	                                 wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, wxTextCtrlNameStr);
-  Connect(LOGIN_PANEL_USERNAME, wxEVT_TEXT_ENTER, wxCommandEventHandler(LoginPanel::OnEnter));
+  _usernameTextCtrl = new wxTextCtrl(this, LOGIN_PANEL_USERNAME,
+									  wxEmptyString, wxDefaultPosition,
+									  wxDefaultSize, wxTE_PROCESS_ENTER,
+									  wxDefaultValidator, wxTextCtrlNameStr);
 
   // Combine the label and edit box into a Sizer
-  wxBoxSizer *boxSizerUsernameTextInput = new wxBoxSizer(wxHORIZONTAL);
-  boxSizerUsernameTextInput->Add(_usernameLabelText, 0, wxFIXED_MINSIZE | wxALL, 0);
-  boxSizerUsernameTextInput->AddSpacer(10);
-  boxSizerUsernameTextInput->Add(_usernameTextCtrl, 1, wxFIXED_MINSIZE | wxALL, 0);
+  _usernameSizer = new wxBoxSizer(wxHORIZONTAL);
+  _usernameSizer->Add(_usernameLabelText, 0, wxFIXED_MINSIZE | wxALL, 0);
+  _usernameSizer->AddSpacer(10);
+  _usernameSizer->Add(_usernameTextCtrl, 1, wxFIXED_MINSIZE | wxALL, 0);
 
   // OK button
   _usernameOkButton = new wxButton(this, LOGIN_PANEL_OK_BUTTON, "OK",
-	                               wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxButtonNameStr);
-  Connect(LOGIN_PANEL_OK_BUTTON, wxEVT_BUTTON, wxCommandEventHandler(LoginPanel::OnButtonClicked));
+									wxDefaultPosition, wxDefaultSize,
+									0, wxDefaultValidator, wxButtonNameStr);
   
   // Cancel button
   _usernameQuitButton = new wxButton(this, LOGIN_PANEL_QUIT_BUTTON, "Quit",
-	                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxButtonNameStr);
-  Connect(LOGIN_PANEL_QUIT_BUTTON, wxEVT_BUTTON, wxCommandEventHandler(LoginPanel::OnExit));
+									  wxDefaultPosition, wxDefaultSize,
+									  0, wxDefaultValidator, wxButtonNameStr);
 
-  wxBoxSizer *boxSizerButtons = new wxBoxSizer(wxHORIZONTAL);
-  boxSizerButtons->Add(_usernameOkButton, 0, wxFIXED_MINSIZE | wxALL, 0);
-  boxSizerButtons->AddSpacer(10);
-  boxSizerButtons->Add(_usernameQuitButton, 0, wxFIXED_MINSIZE | wxALL, 0);
+  _buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+  _buttonSizer->Add(_usernameOkButton, 0, wxFIXED_MINSIZE | wxALL, 0);
+  _buttonSizer->AddSpacer(10);
+  _buttonSizer->Add(_usernameQuitButton, 0, wxFIXED_MINSIZE | wxALL, 0);
 
-  wxBoxSizer *boxSizerAll = new wxBoxSizer(wxVERTICAL);
-  boxSizerAll->Add(boxSizerUsernameTextInput, 0, wxEXPAND | wxALL, 0);
-  boxSizerAll->AddSpacer(10);
-  boxSizerAll->Add(boxSizerButtons, 0, wxEXPAND | wxALL, 0);
-  SetSizer(boxSizerAll);
+  _loginPanelSizer = new wxBoxSizer(wxVERTICAL);
+  _loginPanelSizer->Add(_usernameSizer, 0, wxEXPAND | wxALL, 0);
+  _loginPanelSizer->AddSpacer(10);
+  _loginPanelSizer->Add(_buttonSizer, 0, wxEXPAND | wxALL, 0);
+  SetSizer(_loginPanelSizer);
+}
+
+LoginPanel::~LoginPanel()
+{
+  delete _usernameOkButton;
+  delete _usernameQuitButton;
+  delete _usernameLabelText;
+  delete _usernameTextCtrl;
 }
 
 SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareUpdater> softwareUpdater)
@@ -93,6 +117,7 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
   _softwareUpdater = softwareUpdater;
   std::vector<Software> availList;
   std::vector<Software> installedList;
+  long itemIndex = -1;
 
   try
   {
@@ -117,56 +142,111 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
   }
 
   _notebook = (wxNotebook*)NULL;
+  _availListCtrl = (wxListCtrl*)NULL;
+  _installedListCtrl = (wxListCtrl*)NULL;
+  _notebookSizer = (wxBoxSizer*)NULL;
 
   _notebook = new wxNotebook(this, SOFTWARE_VIEW_PANEL_NOTEBOOK);
 
-  wxListCtrl *availListCtrl = new wxListCtrl(_notebook, SOFTWARE_VIEW_PANEL_AVAIL_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
-  wxListCtrl *installedListCtrl = new wxListCtrl(_notebook, SOFTWARE_VIEW_PANEL_INSTALLED_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+  _availListCtrl = new wxListCtrl(_notebook,
+								  SOFTWARE_VIEW_PANEL_AVAIL_LIST,
+								  wxDefaultPosition,
+								  wxDefaultSize,
+								  wxLC_REPORT);
+  _installedListCtrl = new wxListCtrl(_notebook,
+									  SOFTWARE_VIEW_PANEL_INSTALLED_LIST,
+									  wxDefaultPosition,
+									  wxDefaultSize,
+									  wxLC_REPORT);
 
-  // First column
-  wxListItem col0;
-  col0.SetId(0);
-  col0.SetText(wxT("Name"));
-  col0.SetWidth(200);
-  availListCtrl->InsertColumn(0, col0);
-  installedListCtrl->InsertColumn(0, col0);
+  // Name column
+  wxListItem column;
+  column.SetText(SOFTWARE_VIEW_PANEL_LIST_COL_NAME);
+  column.SetWidth(200);
+  _availListCtrl->InsertColumn(COLUMN_0, column);
+  _installedListCtrl->InsertColumn(COLUMN_0, column);
 
-  // Second column
-  wxListItem col1;
-  col1.SetId(1);
-  col1.SetText(wxT("Version"));
-  col1.SetWidth(200);
-  availListCtrl->InsertColumn(1, col1);
-  installedListCtrl->InsertColumn(1, col1);
+  // Version column
+  column.SetText(SOFTWARE_VIEW_PANEL_LIST_COL_VERSION);
+  _availListCtrl->InsertColumn(COLUMN_1, column);
+  _installedListCtrl->InsertColumn(COLUMN_1, column);
 
-  // Third column
-  wxListItem col2;
-  col2.SetId(2);
-  col2.SetText(wxT("Date"));
-  col2.SetWidth(200);
-  availListCtrl->InsertColumn(2, col2);
-  installedListCtrl->InsertColumn(2, col2);
+  // Date column
+  column.SetText(SOFTWARE_VIEW_PANEL_LIST_COL_DATE);
+  _availListCtrl->InsertColumn(COLUMN_2, column);
+  _installedListCtrl->InsertColumn(COLUMN_2, column);
 
   for (std::size_t i = 0; i < availList.size(); i++)
   {
-	long itemIndex = availListCtrl->InsertItem(0, availList[i].GetName());
-	availListCtrl->SetItem(itemIndex, 1, availList[i].GetVersion());
-	availListCtrl->SetItem(itemIndex, 2, availList[i].GetDate());
+	// With wxListCtrl if we need to install data per column the first
+	// insert needs to be via InsertItem to get the index and subsequently
+	// we can use SetItem with the previously obtained index to insert
+	// the remaining items
+	itemIndex = _availListCtrl->InsertItem(COLUMN_0, availList[i].GetName());
+	_availListCtrl->SetItem(itemIndex, COLUMN_1, availList[i].GetVersion());
+	_availListCtrl->SetItem(itemIndex, COLUMN_2, availList[i].GetDate());
   }
 
   for (std::size_t i = 0; i < installedList.size(); i++)
   {
-	installedListCtrl->SetItem(i, 0, installedList[i].GetName());
-	installedListCtrl->SetItem(i, 1, installedList[i].GetVersion());
-	installedListCtrl->SetItem(i, 2, installedList[i].GetDate());
+	itemIndex = _installedListCtrl->InsertItem(COLUMN_0, availList[i].GetName());
+	_installedListCtrl->SetItem(itemIndex, COLUMN_1, installedList[i].GetVersion());
+	_installedListCtrl->SetItem(itemIndex, COLUMN_2, installedList[i].GetDate());
   }
 
-  _notebook->AddPage(availListCtrl, wxT("Available Softwares"));
-  _notebook->AddPage(installedListCtrl, wxT("Installed Softwares"));
+  _notebook->AddPage(_availListCtrl, SOFTWARE_VIEW_PANEL_AVAIL_LIST_TAG);
+  _notebook->AddPage(_installedListCtrl, SOFTWARE_VIEW_PANEL_INSTALLED_LIST_TAG);
 
-  wxBoxSizer *notebookSizer = new wxBoxSizer(wxHORIZONTAL);
-  notebookSizer->Add(_notebook, 0, wxEXPAND | wxALL, 0);
-  SetSizer(notebookSizer);
+  _notebookSizer = new wxBoxSizer(wxHORIZONTAL);
+  _notebookSizer->Add(_notebook, 0, wxEXPAND | wxALL, 0);
+  SetSizer(_notebookSizer);
+}
+
+SoftwareViewPanel::~SoftwareViewPanel()
+{
+  delete _availListCtrl;
+  delete _installedListCtrl;
+  delete _notebook;
+}
+
+void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
+{
+  // Get the ID of the control structure to distinguish between the two list controls
+  wxListCtrl *listCtrl = wxDynamicCast(event.GetEventObject(), wxListCtrl);
+  wxNotebook *notebook = wxDynamicCast(listCtrl->GetParent(), wxNotebook);
+  long listItemIndex = event.GetIndex();
+  long windowId = listCtrl->GetId();
+
+  switch (windowId)
+  {
+  case SOFTWARE_VIEW_PANEL_AVAIL_LIST:
+	// TODO: Using the listItemIndex get the Software object from the underlying vector
+	// and remove it from available list. Then move that object into the installed list
+	// vector. Also, need to update the underlying file with the information.
+
+	// TODO: perhaps we can use threads here (mutex, condition variables etc.)
+	// Optional TODO: display a widget showing rotating progress to inform user that installation
+	// is in progress
+	break;
+
+  case SOFTWARE_VIEW_PANEL_INSTALLED_LIST:
+	// TODO: Using the listItemIndex get the Software object from the underlying vector
+	// and remove it from installed list. Then move that object into the available list
+	// vector. Also, need to update the underlying file with the information.
+
+	// TODO: perhaps we can use threads here (mutex, condition variables etc.)
+	// Optional TODO: display a widget showing rotating progress to inform user that removal
+	// is in progress
+	break;
+
+  default:
+	break;
+  }
+}
+
+void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
+{
+
 }
 
 SoftwareUpdaterMainFrame::SoftwareUpdaterMainFrame(const wxString &title)
@@ -193,6 +273,21 @@ SoftwareUpdaterMainFrame::SoftwareUpdaterMainFrame(const wxString &title)
   // Show login panel
   _loginPanel = new LoginPanel(this);
   _sizer->Add(_loginPanel, 1, wxGROW);
+}
+
+void SoftwareUpdaterMainFrame::OnExit(wxCommandEvent &event)
+{
+  Close(true);
+}
+
+void SoftwareUpdaterMainFrame::OnAbout(wxCommandEvent &event)
+{
+
+}
+
+void SoftwareUpdaterMainFrame::OnRefresh(wxCommandEvent &event)
+{
+
 }
 
 void SoftwareUpdaterMainFrame::LoadSoftwareView(wxString &newTitle)
