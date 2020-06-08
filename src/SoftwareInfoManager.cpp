@@ -1,19 +1,55 @@
 #include <sstream>
+#include <stdio.h>
+#include <wx/log.h>
 #include "SoftwareInfoManager.h"
 
-SoftwareInfoManager::SoftwareInfoManager()
+SoftwareInfoManager::SoftwareInfoManager(std::string path, std::string tempPath)
+  : _readStream(path, std::ifstream::in),
+	_writeStream(tempPath, std::ofstream::out | std::ofstream::trunc),
+	_readPath(path),
+	_writePath(tempPath)
 {
+  if (!_readStream.is_open())
+  {
+	throw std::system_error(errno, std::system_category(), "failed to open " + path);
+  }
+
+  if (!_writeStream.is_open())
+  {
+	throw std::system_error(errno, std::system_category(), "failed to open " + tempPath);
+  }
+
+  _shouldRename = false;
 }
 
 SoftwareInfoManager::~SoftwareInfoManager()
 {
-  if (_stream.is_open())
+}
+
+void SoftwareInfoManager::Close()
+{
+  if (_readStream.is_open())
   {
-    _stream.close();
+	_readStream.close();
+  }
+
+  if (_writeStream.is_open())
+  {
+	_writeStream.close();
+  }
+
+  if (_shouldRename)
+  {
+	// Remove read file
+	remove(_readPath.c_str());
+
+	// Rename write file as read file
+	rename(_writePath.c_str(), _readPath.c_str());
   }
 }
 
-std::vector<std::string> tokenizer_helper(std::string line, char delim) {
+std::vector<std::string> tokenizer_helper(std::string line, char delim)
+{
   std::vector<std::string> tokens{};
   std::string token;
 
@@ -25,41 +61,33 @@ std::vector<std::string> tokenizer_helper(std::string line, char delim) {
   return tokens;
 }
 
-std::vector<Software> SoftwareInfoManager::ReadSwInfo(std::string path)
+std::vector<Software> SoftwareInfoManager::ReadSwInfo()
 {
   std::vector<Software> list;
   std::string line;
-
-  _stream.open(path);
-  if (!_stream.is_open())
+ 
+  while (std::getline(_readStream, line))
   {
-	throw std::system_error(errno, std::system_category(), "failed to open " + path);
+	std::vector<std::string> tokens = tokenizer_helper(line, ',');
+	Software sw(tokens[0], tokens[1], tokens[2]);
+	list.push_back(std::move(sw));
   }
-  else
-  {
-	while (std::getline(_stream, line))
-	{
-	  std::vector<std::string> tokens = tokenizer_helper(line, ',');
-	  Software sw(tokens[0], tokens[1], tokens[2]);
-	  list.push_back(std::move(sw));
-	}
-  }
-
+ 
   return list;
 }
 
-void SoftwareInfoManager::WriteSwInfo(std::string path, std::vector<Software> swList)
+void SoftwareInfoManager::WriteSwInfo(std::vector<Software> swList)
 {
-  if (!_stream.is_open())
+  if (swList.size() == 0)
   {
-	// TODO: throw exception
+	return;
   }
-  else
+
+  for (std::size_t i = 0; i < swList.size(); i++)
   {
-	for (std::size_t i = 0; i < swList.size(); i++)
-	{
-	  _stream << swList[i].GetName() << "," << swList[i].GetVersion() << "," << swList[i].GetDate() << std::endl;
-	}
+	_writeStream << swList[i].GetName() << "," << swList[i].GetVersion() << "," << swList[i].GetDate() << std::endl;
   }
+
+  _shouldRename = true;
 }
 

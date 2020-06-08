@@ -1,5 +1,8 @@
 
 #include <iostream>
+#include <wx/activityindicator.h>
+#include <wx/aboutdlg.h>
+
 #include "SoftwareUpdaterGui.h"
 
 const int windowWidth = 600;
@@ -223,8 +226,17 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
 	// TODO: Using the listItemIndex get the Software object from the underlying vector
 	// and remove it from available list. Then move that object into the installed list
 	// vector. Also, need to update the underlying file with the information.
+	if (!_softwareUpdater.expired())
+	{
+	  auto installSwRes = std::async(std::launch::deferred,
+									  &SoftwareUpdater::InstallSofware,
+									  _softwareUpdater.lock(),
+									  listItemIndex);
+	  installSwRes.wait();
+	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	  listCtrl->DeleteItem(listItemIndex);
+	}
 
-	// TODO: perhaps we can use threads here (mutex, condition variables etc.)
 	// Optional TODO: display a widget showing rotating progress to inform user that installation
 	// is in progress
 	break;
@@ -233,8 +245,17 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
 	// TODO: Using the listItemIndex get the Software object from the underlying vector
 	// and remove it from installed list. Then move that object into the available list
 	// vector. Also, need to update the underlying file with the information.
+	if (!_softwareUpdater.expired())
+	{
+	  auto removeSwRes = std::async(std::launch::deferred,
+									  &SoftwareUpdater::RemoveSoftware,
+									  _softwareUpdater.lock(),
+									  listItemIndex);
+	  removeSwRes.wait();
+	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	  listCtrl->DeleteItem(listItemIndex);
+	}
 
-	// TODO: perhaps we can use threads here (mutex, condition variables etc.)
 	// Optional TODO: display a widget showing rotating progress to inform user that removal
 	// is in progress
 	break;
@@ -242,6 +263,9 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
   default:
 	break;
   }
+
+  // TODO: Update the layout to make sure installed list and available list
+  // are displayed accurately
 }
 
 void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
@@ -282,12 +306,17 @@ void SoftwareUpdaterMainFrame::OnExit(wxCommandEvent &event)
 
 void SoftwareUpdaterMainFrame::OnAbout(wxCommandEvent &event)
 {
-
+  wxAboutDialogInfo aboutInfo;
+  aboutInfo.SetName("Software Updater");
+  aboutInfo.SetVersion(SOFTWARE_UPDATER_VERSION_STRING);
+  aboutInfo.SetDescription(_("CppND-Final-Project"));
+  aboutInfo.SetCopyright("(C) 2020");
+  wxAboutBox(aboutInfo);
 }
 
 void SoftwareUpdaterMainFrame::OnRefresh(wxCommandEvent &event)
 {
-
+  // TODO: Refresh UI
 }
 
 void SoftwareUpdaterMainFrame::LoadSoftwareView(wxString &newTitle)
@@ -308,7 +337,6 @@ void SoftwareUpdaterMainFrame::LoadSoftwareView(wxString &newTitle)
 
 SoftwareUpdaterMainFrame::~SoftwareUpdaterMainFrame()
 {
-
 }
 
 bool SoftwareUpdaterApp::OnInit()

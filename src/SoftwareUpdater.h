@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <mutex>
-#include <condition_variable>
+#include <future>
 
 #include "SoftwareInfoManager.h"
 
@@ -28,7 +28,6 @@ private:
   std::vector<Software> _availableSoftwareList;
   std::vector<Software> _installedSoftwareList;
 
-  std::condition_variable _cond;
   std::mutex              _mutex;
 };
 

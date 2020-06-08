@@ -3,4 +3,4 @@ MS Teams,3.3.4,Dec 12 2018
 Oracle Virtual Box,6.1,May 17 2020
 Adobe Acrobat Reader,4.3,April 28 2018
 Visual Studio 17,15.9.2,January 15 2017
-Visual Studio Code,1.45.1,May 14 2020 
+Visual Studio Code,1.45.1,May 14 2020

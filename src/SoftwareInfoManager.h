@@ -20,15 +20,19 @@ constexpr auto TEMP_INSTALLED_SOFTWARES_FILE = "../files/installed_sw_list_temp.
 class SoftwareInfoManager
 {
 public:
-  SoftwareInfoManager();
+  SoftwareInfoManager(std::string path, std::string tempPath);
   ~SoftwareInfoManager();
 
-  std::vector<Software> ReadSwInfo(std::string path);
-  void WriteSwInfo(std::string path, std::vector<Software> swList);
+  std::vector<Software> ReadSwInfo();
+  void WriteSwInfo(std::vector<Software> swList);
+  void Close();
 
 private:
-  std::fstream _stream;
-  std::fstream _tempStream;
+  std::ifstream _readStream;
+  std::ofstream _writeStream;
+  std::string   _readPath;
+  std::string   _writePath;
+  bool          _shouldRename;
 };
 
 #endif /* SOFTWARE_INFO_MANAGER_H_ */

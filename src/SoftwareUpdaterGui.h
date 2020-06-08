@@ -7,8 +7,9 @@
 #include <wx/log.h>
 #include "SoftwareUpdater.h"
 
-class SoftwareUpdaterFrame;
 class SoftwareUpdaterMainFrame;
+
+constexpr auto SOFTWARE_UPDATER_VERSION_STRING = "1.0";
 
 enum
 {

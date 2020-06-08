@@ -1,26 +1,32 @@
 #include "SoftwareUpdater.h"
+#include <wx/log.h>
 
 SoftwareUpdater::SoftwareUpdater()
 {
-  _availableSwManager = std::make_unique<SoftwareInfoManager>();
-  _installedSwManager = std::make_unique<SoftwareInfoManager>();
+  _availableSwManager = std::make_unique<SoftwareInfoManager>(AVAILABLE_SOFTWARES_FILE, TEMP_AVAILABLE_SOFTWARES_FILE);
+  _installedSwManager = std::make_unique<SoftwareInfoManager>(INSTALLED_SOFTWARES_FILE, TEMP_INSTALLED_SOFTWARES_FILE);
 }
 
 SoftwareUpdater::~SoftwareUpdater()
 {
-  _availableSwManager->WriteSwInfo(AVAILABLE_SOFTWARES_FILE, _availableSoftwareList);
-  _availableSwManager->WriteSwInfo(INSTALLED_SOFTWARES_FILE, _installedSoftwareList);
+  _availableSwManager->WriteSwInfo(_availableSoftwareList);
+  _availableSwManager->Close();
+
+  _installedSwManager->WriteSwInfo(_installedSoftwareList);
+  _installedSwManager->Close();
 }
 
 void SoftwareUpdater::InitSwList()
 {
-  _availableSoftwareList = _availableSwManager->ReadSwInfo(AVAILABLE_SOFTWARES_FILE);
-  _installedSoftwareList = _installedSwManager->ReadSwInfo(INSTALLED_SOFTWARES_FILE);
+  std::lock_guard<std::mutex> lock(_mutex);
+  _availableSoftwareList = _availableSwManager->ReadSwInfo();
+  _installedSoftwareList = _installedSwManager->ReadSwInfo();
 }
 
 void SoftwareUpdater::RefreshSwList()
 {
   // TODO
+  std::lock_guard<std::mutex> lock(_mutex);
 }
 
 bool Software::operator==(Software &sw)
@@ -34,6 +40,8 @@ bool Software::operator==(Software &sw)
 
 void SoftwareUpdater::InstallSofware(std::size_t index)
 {
+  std::lock_guard<std::mutex> lock(_mutex);
+
   if (index < 0 || index > _availableSoftwareList.size())
   {
 	return;
@@ -46,6 +54,8 @@ void SoftwareUpdater::InstallSofware(std::size_t index)
 
 void SoftwareUpdater::RemoveSoftware(std::size_t index)
 {
+  std::lock_guard<std::mutex> lock(_mutex);
+
   if (index < 0 || index > _installedSoftwareList.size())
   {
 	return;
@@ -58,10 +68,12 @@ void SoftwareUpdater::RemoveSoftware(std::size_t index)
 
 std::vector<Software> SoftwareUpdater::GetAvailSwList()
 {
+  std::lock_guard<std::mutex> lock(_mutex);
   return _availableSoftwareList;
 }
 
 std::vector<Software> SoftwareUpdater::GetInstalledSwList()
 {
+  std::lock_guard<std::mutex> lock(_mutex);
   return _installedSoftwareList;
 }
