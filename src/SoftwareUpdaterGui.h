@@ -94,7 +94,6 @@ public:
   void LoadSoftwareView(wxString &newTitle);
   void OnExit(wxCommandEvent &event);
   void OnAbout(wxCommandEvent &event);
-  void OnRefresh(wxCommandEvent &event);
 
 private:
   wxMenuBar         *_menuBar;

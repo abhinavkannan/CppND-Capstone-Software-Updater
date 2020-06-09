@@ -2,6 +2,7 @@
 #include <iostream>
 #include <wx/activityindicator.h>
 #include <wx/aboutdlg.h>
+#include <wx/gauge.h>
 
 #include "SoftwareUpdaterGui.h"
 
@@ -12,7 +13,6 @@ IMPLEMENT_APP(SoftwareUpdaterApp);
 
 wxBEGIN_EVENT_TABLE(SoftwareUpdaterMainFrame, wxFrame)
   EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_EXIT, SoftwareUpdaterMainFrame::OnExit)
-  EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_REFRESH, SoftwareUpdaterMainFrame::OnRefresh)
   EVT_MENU(SOFTWARE_UPDATER_MAIN_FRAME_ABOUT, SoftwareUpdaterMainFrame::OnAbout)
 wxEND_EVENT_TABLE()
 
@@ -69,14 +69,12 @@ LoginPanel::LoginPanel(wxWindow *parent)
 {
   // Create username panel components
   _usernameLabelText = new wxStaticText(this, wxID_ANY, "Enter Username",
-										wxDefaultPosition, wxDefaultSize,
-										wxALIGN_CENTRE | wxBORDER_NONE);
+	wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxBORDER_NONE);
   
   // Edit box to allow user to enter their username
   _usernameTextCtrl = new wxTextCtrl(this, LOGIN_PANEL_USERNAME,
-									  wxEmptyString, wxDefaultPosition,
-									  wxDefaultSize, wxTE_PROCESS_ENTER,
-									  wxDefaultValidator, wxTextCtrlNameStr);
+	wxEmptyString, wxDefaultPosition, wxDefaultSize,
+	wxTE_PROCESS_ENTER, wxDefaultValidator, wxTextCtrlNameStr);
 
   // Combine the label and edit box into a Sizer
   _usernameSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -86,13 +84,11 @@ LoginPanel::LoginPanel(wxWindow *parent)
 
   // OK button
   _usernameOkButton = new wxButton(this, LOGIN_PANEL_OK_BUTTON, "OK",
-									wxDefaultPosition, wxDefaultSize,
-									0, wxDefaultValidator, wxButtonNameStr);
+	wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxButtonNameStr);
   
   // Cancel button
   _usernameQuitButton = new wxButton(this, LOGIN_PANEL_QUIT_BUTTON, "Quit",
-									  wxDefaultPosition, wxDefaultSize,
-									  0, wxDefaultValidator, wxButtonNameStr);
+	wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxButtonNameStr);
 
   _buttonSizer = new wxBoxSizer(wxHORIZONTAL);
   _buttonSizer->Add(_usernameOkButton, 0, wxFIXED_MINSIZE | wxALL, 0);
@@ -138,7 +134,8 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
   }
   catch (const std::bad_weak_ptr& e)
   {
-	wxMessageDialog *errDial = new wxMessageDialog(NULL, std::string("SoftwareUpdater reference invalid!"), std::string(e.what()), wxOK);
+	wxMessageDialog *errDial = new wxMessageDialog(NULL, std::string("SoftwareUpdater reference invalid!"),
+	  std::string(e.what()), wxOK);
 	errDial->ShowModal();
 
 	this->GetParent()->Close();
@@ -151,16 +148,10 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
 
   _notebook = new wxNotebook(this, SOFTWARE_VIEW_PANEL_NOTEBOOK);
 
-  _availListCtrl = new wxListCtrl(_notebook,
-								  SOFTWARE_VIEW_PANEL_AVAIL_LIST,
-								  wxDefaultPosition,
-								  wxDefaultSize,
-								  wxLC_REPORT);
-  _installedListCtrl = new wxListCtrl(_notebook,
-									  SOFTWARE_VIEW_PANEL_INSTALLED_LIST,
-									  wxDefaultPosition,
-									  wxDefaultSize,
-									  wxLC_REPORT);
+  _availListCtrl = new wxListCtrl(_notebook, SOFTWARE_VIEW_PANEL_AVAIL_LIST,
+	wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+  _installedListCtrl = new wxListCtrl(_notebook, SOFTWARE_VIEW_PANEL_INSTALLED_LIST,
+	wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
 
   // Name column
   wxListItem column;
@@ -219,58 +210,106 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
   wxNotebook *notebook = wxDynamicCast(listCtrl->GetParent(), wxNotebook);
   long listItemIndex = event.GetIndex();
   long windowId = listCtrl->GetId();
+  wxGauge gauge(this, wxID_ANY, 100, wxPoint(200, 200), wxSize(100, 20));
 
   switch (windowId)
   {
   case SOFTWARE_VIEW_PANEL_AVAIL_LIST:
-	// TODO: Using the listItemIndex get the Software object from the underlying vector
-	// and remove it from available list. Then move that object into the installed list
-	// vector. Also, need to update the underlying file with the information.
 	if (!_softwareUpdater.expired())
 	{
-	  auto installSwRes = std::async(std::launch::deferred,
-									  &SoftwareUpdater::InstallSofware,
-									  _softwareUpdater.lock(),
-									  listItemIndex);
+	  gauge.SetValue(0);
+	  gauge.Show(true);
+
+	  auto installSwRes = std::async(std::launch::deferred, &SoftwareUpdater::InstallSofware,
+		_softwareUpdater.lock(), listItemIndex);
 	  installSwRes.wait();
-	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	  
+	  // Simulate software installation via a gauge
+	  for (int i = 25; i <= 100; i += 25)
+	  {
+		gauge.SetValue(i);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	  }
+	  gauge.Show(false);
+	  
 	  listCtrl->DeleteItem(listItemIndex);
 	}
-
-	// Optional TODO: display a widget showing rotating progress to inform user that installation
-	// is in progress
 	break;
 
   case SOFTWARE_VIEW_PANEL_INSTALLED_LIST:
-	// TODO: Using the listItemIndex get the Software object from the underlying vector
-	// and remove it from installed list. Then move that object into the available list
-	// vector. Also, need to update the underlying file with the information.
 	if (!_softwareUpdater.expired())
 	{
-	  auto removeSwRes = std::async(std::launch::deferred,
-									  &SoftwareUpdater::RemoveSoftware,
-									  _softwareUpdater.lock(),
-									  listItemIndex);
+	  gauge.SetValue(0);
+	  gauge.Show(true);
+
+	  auto removeSwRes = std::async(std::launch::deferred, &SoftwareUpdater::RemoveSoftware,
+		_softwareUpdater.lock(), listItemIndex);
 	  removeSwRes.wait();
-	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	  
+	  for (int i = 25; i <= 100; i += 25)
+	  {
+		gauge.SetValue(i);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	  }
+	  gauge.Show(false);
+	  
 	  listCtrl->DeleteItem(listItemIndex);
 	}
 
-	// Optional TODO: display a widget showing rotating progress to inform user that removal
-	// is in progress
+	break;
+
+  default:
+	break;
+  }
+}
+
+void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
+{
+  int notebookPage = event.GetSelection();
+  long itemIndex = -1;
+
+  switch (notebookPage)
+  {
+  case 0:
+	{
+	  if (!_softwareUpdater.expired())
+	  {
+		auto availList = _softwareUpdater.lock()->GetAvailSwList();
+		_availListCtrl->DeleteAllItems();
+
+		for (std::size_t i = 0; i < availList.size(); i++)
+		{
+		  itemIndex = _availListCtrl->InsertItem(COLUMN_0, availList[i].GetName());
+		  _availListCtrl->SetItem(itemIndex, COLUMN_1, availList[i].GetVersion());
+		  _availListCtrl->SetItem(itemIndex, COLUMN_2, availList[i].GetDate());
+		}
+	  }
+	}
+
+	break;
+
+  case 1:
+	{
+	  if (!_softwareUpdater.expired())
+	  {
+		auto installedList = _softwareUpdater.lock()->GetInstalledSwList();
+		_installedListCtrl->DeleteAllItems();
+
+		for (std::size_t i = 0; i < installedList.size(); i++)
+		{
+		  itemIndex = _installedListCtrl->InsertItem(COLUMN_0, installedList[i].GetName());
+		  _installedListCtrl->SetItem(itemIndex, COLUMN_1, installedList[i].GetVersion());
+		  _installedListCtrl->SetItem(itemIndex, COLUMN_2, installedList[i].GetDate());
+		}
+	  }
+	}
 	break;
 
   default:
 	break;
   }
 
-  // TODO: Update the layout to make sure installed list and available list
-  // are displayed accurately
-}
-
-void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
-{
-
+  _notebook->Layout();
 }
 
 SoftwareUpdaterMainFrame::SoftwareUpdaterMainFrame(const wxString &title)
@@ -282,7 +321,6 @@ SoftwareUpdaterMainFrame::SoftwareUpdaterMainFrame(const wxString &title)
   _menu = (wxMenu*)NULL;
 
   _menu = new wxMenu;
-  _menu->Append(SOFTWARE_UPDATER_MAIN_FRAME_EXIT, wxT("&Refresh"));
   _menu->Append(SOFTWARE_UPDATER_MAIN_FRAME_ABOUT, wxT("&About"));
   _menu->AppendSeparator();
   _menu->Append(SOFTWARE_UPDATER_MAIN_FRAME_EXIT, wxT("&Exit"));
@@ -312,11 +350,6 @@ void SoftwareUpdaterMainFrame::OnAbout(wxCommandEvent &event)
   aboutInfo.SetDescription(_("CppND-Final-Project"));
   aboutInfo.SetCopyright("(C) 2020");
   wxAboutBox(aboutInfo);
-}
-
-void SoftwareUpdaterMainFrame::OnRefresh(wxCommandEvent &event)
-{
-  // TODO: Refresh UI
 }
 
 void SoftwareUpdaterMainFrame::LoadSoftwareView(wxString &newTitle)
