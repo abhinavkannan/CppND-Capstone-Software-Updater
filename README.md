@@ -12,7 +12,7 @@ and manage tools provided by the organization for day-to-day activities ex. Micr
 * make >= 4.1 (Linux), 3.81 (Windows)
 * gcc/g++ >= 5.4
 * wxWidgets >= 3.0
-	* Linux: `sudo apt-get install install libwxgtk3.0-dev libwxgtk3.0-0v5-dbg libwxgtk3.0-gtk3-dev libwxgtk3.0-gtk3-0v5`
+	* Linux: `sudo apt-get install sudo apt-get install libwxgtk3.0-dev libwxgtk3.0-0v5-dbg`
 	* Windows: Installation instruction can be found [here](https://wiki.wxwidgets.org/Install)
 
 # Instructions for building the project
