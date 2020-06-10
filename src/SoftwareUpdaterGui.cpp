@@ -201,8 +201,6 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
 
 SoftwareViewPanel::~SoftwareViewPanel()
 {
-  delete _availListCtrl;
-  delete _installedListCtrl;
   delete _notebook;
 }
 
