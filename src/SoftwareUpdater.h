@@ -14,7 +14,6 @@ public:
   ~SoftwareUpdater();
 
   void InitSwList();
-  void RefreshSwList();
   void InstallSofware(std::size_t index);
   void RemoveSoftware(std::size_t index);
 

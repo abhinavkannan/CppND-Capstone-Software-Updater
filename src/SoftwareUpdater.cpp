@@ -19,14 +19,8 @@ SoftwareUpdater::~SoftwareUpdater()
 void SoftwareUpdater::InitSwList()
 {
   std::lock_guard<std::mutex> lock(_mutex);
-  _availableSoftwareList = _availableSwManager->ReadSwInfo();
-  _installedSoftwareList = _installedSwManager->ReadSwInfo();
-}
-
-void SoftwareUpdater::RefreshSwList()
-{
-  // TODO
-  std::lock_guard<std::mutex> lock(_mutex);
+  _availableSwManager->ReadSwInfo(_availableSoftwareList);
+  _installedSwManager->ReadSwInfo(_installedSoftwareList);
 }
 
 bool Software::operator==(Software &sw)
@@ -48,6 +42,7 @@ void SoftwareUpdater::InstallSofware(std::size_t index)
   }
 
   Software installSw = _availableSoftwareList[index];
+
   _availableSoftwareList.erase(_availableSoftwareList.begin() + index);
   _installedSoftwareList.push_back(std::move(installSw));
 }

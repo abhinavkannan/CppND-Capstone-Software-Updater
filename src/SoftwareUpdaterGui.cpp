@@ -128,6 +128,15 @@ SoftwareViewPanel::SoftwareViewPanel(wxWindow *parent, std::shared_ptr<SoftwareU
 	  _softwareUpdater.lock()->InitSwList();
 	  availList = _softwareUpdater.lock()->GetAvailSwList();
 	  installedList = _softwareUpdater.lock()->GetInstalledSwList();
+
+	  // wxListCtrl inserts the elements in the list in reverse order
+	  // ex. if the undelying vector has data 1,2,3 the list control
+	  // displays it in the reverse order. To ensure the list indices
+	  // returned are in order and match the underlying data read
+	  // from the file the order of the local copied vector is reversed
+	  // so that the final insertion in the list is in the expected order
+	  std::reverse(availList.begin(), availList.end());
+	  std::reverse(installedList.begin(), installedList.end());
 	}
   }
   catch (const std::system_error& e)
@@ -229,7 +238,7 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
 	  for (int i = 25; i <= 100; i += 25)
 	  {
 		gauge.SetValue(i);
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 	  }
 	  gauge.Show(false);
 	  
@@ -250,7 +259,7 @@ void SoftwareViewPanel::OnListCtrlItemClick(wxListEvent &event)
 	  for (int i = 25; i <= 100; i += 25)
 	  {
 		gauge.SetValue(i);
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 	  }
 	  gauge.Show(false);
 	  
@@ -276,6 +285,10 @@ void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
 	  if (!_softwareUpdater.expired())
 	  {
 		auto availList = _softwareUpdater.lock()->GetAvailSwList();
+		// Reverse the vector - explanation provided in the constructor of
+		// SoftwareViewPanel
+		std::reverse(availList.begin(), availList.end());
+
 		_availListCtrl->DeleteAllItems();
 
 		for (std::size_t i = 0; i < availList.size(); i++)
@@ -294,6 +307,10 @@ void SoftwareViewPanel::OnSoftwareViewPageChanged(wxBookCtrlEvent& event)
 	  if (!_softwareUpdater.expired())
 	  {
 		auto installedList = _softwareUpdater.lock()->GetInstalledSwList();
+		// Reverse the vector - explanation provided in the constructor of
+		// SoftwareViewPanel
+		std::reverse(installedList.begin(), installedList.end());
+
 		_installedListCtrl->DeleteAllItems();
 
 		for (std::size_t i = 0; i < installedList.size(); i++)

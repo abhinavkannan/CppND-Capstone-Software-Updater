@@ -61,9 +61,8 @@ std::vector<std::string> tokenizer_helper(std::string line, char delim)
   return tokens;
 }
 
-std::vector<Software> SoftwareInfoManager::ReadSwInfo()
+void SoftwareInfoManager::ReadSwInfo(std::vector<Software> &list)
 {
-  std::vector<Software> list;
   std::string line;
  
   while (std::getline(_readStream, line))
@@ -72,8 +71,6 @@ std::vector<Software> SoftwareInfoManager::ReadSwInfo()
 	Software sw(tokens[0], tokens[1], tokens[2]);
 	list.push_back(std::move(sw));
   }
- 
-  return list;
 }
 
 void SoftwareInfoManager::WriteSwInfo(std::vector<Software> swList)

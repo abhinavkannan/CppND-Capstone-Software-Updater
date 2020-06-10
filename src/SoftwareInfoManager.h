@@ -23,7 +23,7 @@ public:
   SoftwareInfoManager(std::string path, std::string tempPath);
   ~SoftwareInfoManager();
 
-  std::vector<Software> ReadSwInfo();
+  void ReadSwInfo(std::vector<Software> &list);
   void WriteSwInfo(std::vector<Software> swList);
   void Close();
 
