@@ -31,25 +31,25 @@ and manage tools provided by the organization for day-to-day activities ex. Micr
 	* The username is accepted by either hitting the `Return` key or clicking the provided "OK" button
 	* Another button has been provided to allow the user to quit the application
 	
-	<img src="images/username_panel.png"/>
+	* <img src="images/username_panel.png"/>
 	
-* After the user logs in the tool displays two tabbed panes showing the softwares currently "available" for installation and the softwares that have been "installed"
+* The next window after username input is provided displays two tabbed panes showing the softwares currently "available" for installation and the softwares that have been "installed"
 	
-	<img src="images/main_software_view_panel_available_sw.png"/>
+	* <img src="images/main_software_view_panel_available_sw.png"/>
 	
-	<img src="images/main_software_view_panel_installed_sw.png"/>
+	* <img src="images/main_software_view_panel_installed_sw.png"/>
 	
 * Software installation is simulated when the user clicks on one of the displayed items. Clicking the list item will move the software from "available list" to "installed list"
 
-	<img src="images/sw_install_initiation.png"/>
+	* <img src="images/sw_install_initiation.png"/>
 	
-	<img src="images/sw_install_completion.png"/>
+	* <img src="images/sw_install_completion.png"/>
 	
 * Similarly software removal is simulated by clicking one of the list items in the "installed softwares" tab. Doing so will move the software out of the installed list back into available list
 
-	<img src="images/sw_removal_initiation.png"/>
+	* <img src="images/sw_removal_initiation.png"/>
 	
-	<img src="images/sw_removal_completion.png"/>
+	* <img src="images/sw_removal_completion.png"/>
 	
 * Closing the program will update the current state of available and installed softwares into corresponding files
 
