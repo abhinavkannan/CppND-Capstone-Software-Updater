@@ -1,7 +1,10 @@
 
 #include <iostream>
-#include <wx/activityindicator.h>
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #include <wx/aboutdlg.h>
+#else
+#include <wx/dialog.h>
+#endif
 #include <wx/gauge.h>
 
 #include "SoftwareUpdaterGui.h"
@@ -344,12 +347,24 @@ void SoftwareUpdaterMainFrame::OnExit(wxCommandEvent &event)
 
 void SoftwareUpdaterMainFrame::OnAbout(wxCommandEvent &event)
 {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
   wxAboutDialogInfo aboutInfo;
   aboutInfo.SetName("Software Updater");
   aboutInfo.SetVersion(SOFTWARE_UPDATER_VERSION_STRING);
   aboutInfo.SetDescription(_("CppND-Final-Project"));
   aboutInfo.SetCopyright("(C) 2020");
   wxAboutBox(aboutInfo);
+#else
+  wxString softwareName("Software Updater");
+  wxString softwareVersion(SOFTWARE_UPDATER_VERSION_STRING);
+  wxString softwareDescription("CppND-Final-Project");
+  wxString softwareCopyright("(C) 2020");
+
+  wxMessageDialog aboutDialog(NULL, softwareDescription, softwareVersion, wxOK|wxCENTRE);
+  aboutDialog.SetTitle(softwareName);
+  aboutDialog.SetExtendedMessage(softwareCopyright);
+  aboutDialog.ShowModal();
+#endif
 }
 
 void SoftwareUpdaterMainFrame::LoadSoftwareView(wxString &newTitle)
